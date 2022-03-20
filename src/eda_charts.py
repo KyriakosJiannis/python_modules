@@ -83,7 +83,7 @@ def classification_destiny_boxplot(data, target_var, feature_var):
     fig = plt.figure(figsize=(12, 12))
     fig.subplots_adjust(hspace=0.2, wspace=0.2)
 
-    labels = np.sort(data.target.unique())
+    labels = np.sort(data[target_var].unique())
 
     # plot creation
     ax = fig.add_subplot(2, 2, 1)
