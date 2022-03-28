@@ -1,4 +1,4 @@
-"""This is a module for EDA proposes"""
+"""This is a module for EDA purposes"""
 
 import seaborn as sns
 import matplotlib.pyplot as plt
