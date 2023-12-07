@@ -2,7 +2,28 @@
 __pycache__/
 *.py[cod]
 
-
-.idea/
 .ipynb_checkpoints/
 
+# Node.js
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+
+# IDE
+.idea/
+.vscode/
+
+# Compiled files
+*.pyc
+*.pyo
+*.pyd
+
+# Temporary files
+*~
+*.swp
+*.bak

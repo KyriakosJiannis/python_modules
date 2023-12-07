@@ -1,141 +1,238 @@
-"""This is a module for EDA purposes"""
-
+from matplotlib import pyplot as plt
 import seaborn as sns
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 
 
-def classification_dual_barchart(data, target_var, feature_var, bins=None):
+def dual_line_barplot(data: pd.DataFrame, target_var: str, feature_var: str, bins: int = None,
+                      round_bins: int = None):
     """
-    for Binary classification cases create a dual chart barchart and line charts.
-    With the line to refers % target across and bars to numerical feature
+    Create a dual chart (bar chart and line chart) for binary classification cases.
+    The line chart represents the percentage of the target variable, and the bars represent a numerical feature.
 
-    :param data: pandas dataframe
-    :param target_var: target
-    :param feature_var: numerical feature
-    :param bins: number of bins
-    :return: seaborn dual charts
+    :param data: Imported DataFrame.
+    :param target_var: Target variable.
+    :param feature_var: Numerical feature.
+    :param bins: Number of bins for numerical feature (default: 10).
+    :param round_bins: Decimals for rounding.
+    :return: Seaborn dual charts.
     """
-    # check if variable is numerical to set the bin number in line with matplotlib functionality,default 10 bins
-    # https://numpy.org/doc/stable/reference/generated/numpy.histogram_bin_edges.html
-    # Set the bin for numerical,
-    # and aggregate dataframe to be used in a dual seaborn chart
 
+    # Set the bin number, and create the grouped dataframe
     if pd.api.types.is_numeric_dtype(data[feature_var]):
-        if bins is None:
-            bins_num = 10
-        elif bins in ["auto", "fd", "scott", "rice", "rice", "sturges", "doane", "sqrt"]:
-            bins_num = len(np.histogram_bin_edges(data[feature_var].values, bins))
-        else:
-            bins_num = bins
+        # Determine the number of bins based on the specified method or default to 10
+        num_bins = bins if bins is not None and bins not in ["auto", "fd", "scott", "rice", "sturges", "doane",
+                                                             "sqrt"] else 10
 
-        # Create the bands
-        bins_group = pd.cut(data[feature_var], bins=bins_num, right=False)
+        # Create bins
+        bins_group = pd.cut(data[feature_var], bins=num_bins, right=False)
 
-        # Calculate for each band the counts and mean to be in the chart
-        group = data.groupby(bins_group)[feature_var, target_var].agg({feature_var: 'count', target_var: 'mean'})
+        # Calculate counts and mean for each bin to be used in the chart
+        grouped_data = data.groupby(bins_group)[[feature_var, target_var]].agg(
+            {feature_var: 'count', target_var: 'mean'})
     else:
-        group = data.groupby(feature_var)[feature_var, target_var].agg({feature_var: 'count', target_var: 'mean'})
+        # If the feature variable is not numerical, aggregate using the feature variable directly
+        grouped_data = data.groupby(feature_var)[[feature_var, target_var]].agg(
+            {feature_var: 'count', target_var: 'mean'})
 
-    group.columns = [feature_var + " Counts", target_var]  # rename the features counts
-    group.reset_index(inplace=True)  # reset index
-    group[feature_var] = group[feature_var].astype(str)  # set bands as string
-    group[target_var] = group[target_var] * 100  # multiply for percent
-    group.dropna(inplace=True)
+    # Rename columns for clarity
+    grouped_data.columns = [f'{feature_var} Counts', target_var]
+
+    grouped_data.reset_index(inplace=True)  # Reset index
+
+    # Convert feature variable to string for categorical display
+    grouped_data[feature_var] = grouped_data[feature_var].astype(str)
+    grouped_data[feature_var] = grouped_data[feature_var].str.replace(", ", "-")
+
+    # Function to round numeric values within the bracketed string
+    if pd.api.types.is_numeric_dtype(data[feature_var]) and round_bins is not None:
+        def round_the_brackets(value, decimals):
+            boundaries = [round(float(num), decimals) for num in value[1:-1].split('-')]
+            formatted_boundaries = [int(num) if decimals == 0 else num for num in boundaries]
+            return '[' + '-'.join(map(str, formatted_boundaries)) + ')'
+
+        grouped_data[feature_var] = grouped_data[feature_var].apply(
+            lambda x: round_the_brackets(x, decimals=round_bins))
+
+    # Multiply the target variable by 100 for percentage display
+    grouped_data[target_var] *= 100
+
+    # Drop rows with missing values
+    grouped_data.dropna(inplace=True)
 
     # Create dual chart
     fig, ax1 = plt.subplots(figsize=(10, 6))
 
-    # bar plot creation
-    ax1.set_title(feature_var + ' Distribution', fontsize=12)
-    ax1.set_xlabel(feature_var, fontsize=10)
-    ax1.set_ylabel(target_var, fontsize=10)
+    # Bar plot creation
+    ax1.set_title(f'{feature_var} Distribution', fontsize=12)
+    ax1.set_xlabel(f'{feature_var} Bins', fontsize=10)
+    ax1.set_ylabel(f'{feature_var} Counts', fontsize=10)
 
-    ax1 = sns.barplot(x=feature_var, y=feature_var + " Counts", data=group, color='C0')
+    sns.barplot(x=feature_var, y=f'{feature_var} Counts', data=grouped_data, color='C0', ax=ax1)
 
-    ax1.tick_params(axis='y', labelsize=8)
-    ax1.tick_params(axis='x', labelsize=8)
+    # Adjust tick sizes
+    ax1.tick_params(axis='both', labelsize=8)
 
-    # specify we want to share the same x-axis
+    # Specify that we want to share the same x-axis
     ax2 = ax1.twinx()
 
-    # line plot creation
-    ax2.set_ylabel(target_var + '%', fontsize=12)
-    ax2 = sns.lineplot(x=feature_var, y=target_var, data=group, sort=False, color="C1", lw=5)
+    # Line plot creation
+    ax2.set_ylabel(f'{target_var} in %', fontsize=16)
+    sns.lineplot(x=feature_var, y=target_var, data=grouped_data, sort=False, color="C1", lw=5, ax=ax2)
 
+    # Adjust tick sizes
     ax2.tick_params(axis='y', labelsize=8)
+
+    # Automatically adjust subplot parameters
+    plt.tight_layout()
+
+    # Show the plot
     plt.show()
 
 
-def classification_destiny_boxplot(data, target_var, feature_var):
+def sub_hist_boxplot(data: pd.DataFrame, target_var: str, feature_var: str, stat="density", bins: int = None, ):
     """
-    For classification cases creates a subplot with a destiny chart
-    nd boxplot on target variable classes for a numerical feature
+    For classification cases, creates a subplot with a density chart and boxplot on target variable classes for a numerical feature.
 
-    :param data: pandas dataframe
-    :param target_var: target
-    :param feature_var: numerical feature
-    :return: subplot with seaborn destiny and boxplot
+    :param data: Pandas DataFrame.
+    :param target_var: Target variable.
+    :param feature_var: Numerical feature.
+    :param bins:
+    :param stat:
+    :return: Subplot with Seaborn density and boxplot.
     """
+
+    num_bins = bins if bins is not None and bins not in ["auto", "fd", "scott", "rice", "sturges", "doane",
+                                                         "sqrt"] else 10
 
     # Create chart
     fig = plt.figure(figsize=(12, 12))
+    fig.suptitle(f'Distribution and Boxplot for {feature_var} by {target_var}', fontsize=16)
     fig.subplots_adjust(hspace=0.2, wspace=0.2)
 
-    labels = np.sort(data[target_var].unique())
+    # Create the distribution plot
+    ax1 = fig.add_subplot(2, 2, 1)
+    sns.histplot(data=data, x=feature_var, stat=stat, hue=target_var, bins=num_bins, kde=True, common_norm=False,
+                 element="step", ax=ax1)
 
-    # plot creation
-    ax = fig.add_subplot(2, 2, 1)
-    for ix in labels:
-        sns.distplot(data[feature_var][data[target_var] == labels[ix]],  bins=10, hist_kws={'alpha': 0.6}, ax=ax)
+    # Create the boxplot
+    ax2 = fig.add_subplot(2, 2, 2)
+    sns.boxplot(x=target_var, y=feature_var, data=data, palette='tab10', ax=ax2)
 
-    ax = fig.add_subplot(2, 2, 2)
-    sns.boxplot(x=target_var, y=feature_var, data=data, ax=ax)
-
+    # Automatically adjust subplot parameters
+    plt.tight_layout()
     plt.show()
 
 
-def classification_tabular_chart(data, target_var, feature_var):
+def tabular_plot(data: pd.DataFrame, target_var: str, feature_var: str):
     """
-    For classification cases creates the tabular chart between target and ordinal /categorical feature
+    Create a tabular chart for classification cases, showing the relationship
+    between the target variable and an ordinal/categorical feature.
 
-    :param data: pandas dataframe
-    :param target_var: target
-    :param feature_var: ordinal/categorical  feature
-    :return: tabular chart using seaborn catplot
+    :param data: The input DataFrame.
+    :param target_var: The name of the target variable (categorical).
+    :param feature_var: The name of the ordinal/categorical feature variable.
+
+    :return: Displays a tabular chart using Seaborn catplot.
     """
+
+    # Calculate percentages and reshape data
     cross_df = data.groupby(feature_var)[target_var].value_counts(normalize=True)
     cross_df = cross_df.mul(100).rename('Percent').reset_index()
 
-    g = sns.catplot(x=feature_var, y='Percent', hue=target_var, kind='bar', data=cross_df)
-    g.ax.set_ylim(0, 100)
+    # Create the tabular chart using Seaborn catplot with a title
+    chart = sns.catplot(x=feature_var, y='Percent', hue=target_var, kind='bar', data=cross_df)
+    chart.fig.suptitle(f'Tabular Chart: {target_var} vs {feature_var}', y=1.02)
+
+    # Set y-axis limit to ensure percentages are within the range [0, 100]
+    chart.ax.set_ylim(0, 100)
+
+    # Show the plot
     plt.show()
 
 
-def distribution_by_group(data, feature_var, by):
+def distribution_by_group(data: pd.DataFrame, feature_var: str, by: str, stat="density", bins: int = None):
     """
-    Create destiny charts for the classes of by variable
+    Create density plots for the classes of the 'by' variable for a feature.
 
-    :param data: pandas dataframe
-    :param feature_var: num feature
-    :param by: ordinal/categorical  feature
-    :return:
+    :param data: DataFrame containing the data.
+    :param feature_var: The numerical feature variable for which density plots are to be created.
+    :param by: The ordinal/categorical feature variable for grouping.
+    :param bins:
+    :param stat: seaborn stat parameter
+    :return: Displays density plots using Seaborn .
     """
 
-    fig = plt.figure(figsize=(12, 10))
+    num_bins = bins if bins is not None and bins not in ["auto", "fd", "scott", "rice", "sturges", "doane",
+                                                         "sqrt"] else 10
 
-    labels = np.sort(data[by].unique()).tolist()
+    plt.figure(figsize=(12, 10))
 
-    for ix in labels:
-        sns.distplot(data[feature_var][data[by] == ix], rug=False, norm_hist=False, hist_kws={'alpha': 0.6})
+    sns.histplot(data=data, x=feature_var, stat=stat, hue=by, common_norm=False, palette='tab10', bins=num_bins,
+                 kde=True)
 
-    fig.legend(labels=labels,
-               title=by,
-               bbox_to_anchor=(1.01, 1),
-               loc='upper left')
-
-    plt.ylabel('Density', fontsize=12 * 0.8)
     plt.xlabel(feature_var, fontsize=12 * 0.8)
-    plt.title("Distribution of " + feature_var + " by " + by, fontsize=12)
+    plt.title(f"Distribution of {feature_var} by {by}", fontsize=12)
+
     plt.show()
+
+
+def plot_distributions(data: pd.DataFrame, stat="count", common_norm=True, by=None, num_cols: int = None,
+                       bins: int = None):
+    """
+    Count distributions for numerical, objects and categorical variables in a DataFrame.
+
+    :param data: Pandas DataFrame.
+    :param common_norm:
+    :param stat:
+    :param num_cols:
+    :param bins:
+
+    :param by:
+    """
+    num_bins = bins if bins is not None and bins not in ["auto", "fd", "scott", "rice", "sturges", "doane",
+                                                         "sqrt"] else 10
+
+    # Number of rows and columns for subplots
+    if num_cols is None:
+        num_cols = len(data.columns)
+    num_rows = (num_cols - 1) // 2 + 1
+
+    # Create subplots
+    fig, axes = plt.subplots(num_rows, 2, figsize=(15, num_rows * 5))
+    fig.suptitle('Distributions of Variables', fontsize=16)
+
+    # Flatten the axes array for ease of indexing
+    axes = axes.flatten()
+
+    # Iterate through each column
+    for i, col in enumerate(data.columns):
+        data_type = data[col].dtype
+
+        # Plot distributions for numerical variables
+        if pd.api.types.is_numeric_dtype(data_type):
+            if by is None:
+                sns.histplot(data[col], kde=True, stat=stat, bins=num_bins, ax=axes[i])
+                axes[i].set_title(f'Distribution of {col}')
+            else:
+                if col != by:
+                    sns.histplot(data, x=col, kde=True, stat=stat, hue=by, bins=num_bins, palette='tab10',
+                                 common_norm=common_norm, ax=axes[i], )
+                    axes[i].set_title(f'Distribution of {col}')
+
+        # Plot counts for object (categorical) variables
+        elif pd.api.types.is_categorical_dtype(data_type) or pd.api.types.is_object_dtype(data_type):
+            if by is None:
+                sns.countplot(data[col], stat=stat, ax=axes[i])
+                axes[i].set_title(f'Distribution of {col}')
+            else:
+                if col != by:
+                    sns.countplot(data, x=col, stat=stat, hue=by, palette='tab10', ax=axes[i], )
+                    axes[i].set_title(f'Distribution of {col}')
+
+    # Adjust layout
+    plt.tight_layout(rect=[0, 0, 1, 0.97])
+    plt.show()
+
+
+if __name__ == "__main__":
+    pass
