@@ -1,6 +1,7 @@
 from matplotlib import pyplot as plt
 import seaborn as sns
 import pandas as pd
+import numpy as np
 
 
 def dual_line_barplot(data: pd.DataFrame, target_var: str, feature_var: str, bins: int = None,
@@ -232,6 +233,51 @@ def plot_distributions(data: pd.DataFrame, stat="count", common_norm=True, by=No
     # Adjust layout
     plt.tight_layout(rect=[0, 0, 1, 0.97])
     plt.show()
+
+
+def descriptive_dataframe(data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Create a comprehensive descriptive DataFrame from a given DataFrame.
+    includes data types, counts, NaN counts, unique values, top values, frequencies,
+    statistical measures, quantiles, kurtosis, skew, and range for numerical variables.
+
+    :param data: The input DataFrame.
+    :returns: The comprehensive descriptive DataFrame w
+    """
+    # Initial data type, count, and null value calculations
+    count_df = pd.DataFrame({
+        'Dtype': data.dtypes,
+        'Count': data.count(),
+        'Non-Null Count': data.notnull().sum(),
+        'NaN Count': data.isna().sum()
+    })
+
+    # Descriptive statistics
+    describe_df = data.describe(include='all').T
+
+    # Round numeric statistics to 3 decimals
+    numeric_stats = ['mean', 'std', 'min', '25%', '50%', '75%', 'max']
+    for col in numeric_stats:
+        if col in describe_df.columns:
+            describe_df[col] = describe_df[col].apply(lambda x: round(x, 2) if pd.notnull(x) else x)
+
+    # Calculating additional statistics for numeric columns
+    numeric_cols = data.select_dtypes(include=[np.number]).columns
+    describe_df.loc[numeric_cols, '5%'] = data[numeric_cols].quantile(0.05).round(3)
+    describe_df.loc[numeric_cols, '95%'] = data[numeric_cols].quantile(0.95).round(3)
+    describe_df.loc[numeric_cols, 'Range'] = (data[numeric_cols].max() - data[numeric_cols].min()).round(3)
+    describe_df.loc[numeric_cols, 'Kurtosis'] = data[numeric_cols].kurtosis().round(3)
+    describe_df.loc[numeric_cols, 'Skew'] = data[numeric_cols].skew().round(3)
+
+    # Merging all DataFrames into one
+    final_df = pd.concat([count_df, describe_df], axis=1)
+
+    # Adjusting the order of columns
+    final_columns = ['Dtype', 'Count', 'NaN Count', 'unique', 'top', 'freq',
+                     'mean', 'std', 'min', '5%', '25%', '50%', '75%', '95%', 'max', 'Range', 'Kurtosis', 'Skew']
+    final_df = final_df[final_columns]
+
+    return final_df
 
 
 if __name__ == "__main__":
