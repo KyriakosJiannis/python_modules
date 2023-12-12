@@ -247,7 +247,7 @@ def descriptive_dataframe(data: pd.DataFrame) -> pd.DataFrame:
     # Initial data type, count, and null value calculations
     count_df = pd.DataFrame({
         'Dtype': data.dtypes,
-        'Count': data.count(),
+        'Count': data.shape[0],
         'Non-Null Count': data.notnull().sum(),
         'NaN Count': data.isna().sum()
     })
