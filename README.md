@@ -8,10 +8,7 @@ Contains EDA, data processing and ML modules
 ## Installation
 
 ```bash
-pip install python_modules
-```
-```bash
-pip install https://github.com/KyriakosJiannis/python_modules.git@main
+pip install git+https://github.com/KyriakosJiannis/python_modules.git@main
 ```
 
 
