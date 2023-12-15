@@ -11,7 +11,7 @@ Contains EDA, data processing and ML modules
 pip install python_modules
 ```
 ```bash
-pip install https://github.com/KyriakosJiannis/python_modules.git@main--upgrade
+pip install https://github.com/KyriakosJiannis/python_modules.git@main
 ```
 
 
