@@ -2,6 +2,7 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
+from pandas.api.types import CategoricalDtype
 
 
 def dual_line_barplot(data: pd.DataFrame, target_var: str, feature_var: str, bins: int = None,
@@ -20,9 +21,6 @@ def dual_line_barplot(data: pd.DataFrame, target_var: str, feature_var: str, bin
 
     if not all(data[target_var].isin([0, 1])):
         raise ValueError("Target and feature variables must contain only 0 and 1.")
-
-    if not isinstance(feature_var, str):
-        raise TypeError("Feature variable should be a string.")
 
     if bins is not None and not isinstance(bins, int):
         raise TypeError("Bins should be an integer or None.")
@@ -209,6 +207,9 @@ def sub_hist_boxplot(data: pd.DataFrame, target_var: str, feature_var: str, stat
     :return: Subplot with Seaborn density and boxplot.
     """
 
+    if not (pd.api.types.is_numeric_dtype(data[target_var]) and pd.api.types.is_numeric_dtype(data[feature_var])):
+        raise TypeError(f"Both {target_var} and {feature_var} should be numeric columns.")
+
     num_bins = bins if bins is not None and bins not in ["auto", "fd", "scott", "rice", "sturges", "doane",
                                                          "sqrt"] else 10
 
@@ -330,7 +331,7 @@ def plot_distributions(data: pd.DataFrame, stat="count", common_norm=True, by=No
                     axes[i].set_title(f'Distribution of {col}')
 
         # Plot counts for object (categorical) variables
-        elif pd.api.types.is_categorical_dtype(data_type) or pd.api.types.is_object_dtype(data_type):
+        elif isinstance(data_type, CategoricalDtype) or pd.api.types.is_object_dtype(data_type):
             if by is None:
                 sns.countplot(data[col], stat=stat, ax=axes[i])
                 axes[i].set_title(f'Distribution of {col}')
@@ -383,9 +384,8 @@ def descriptive_dataframe(data: pd.DataFrame) -> pd.DataFrame:
     final_df = combined_df[final_columns]
 
     # Round
-
     round_cols = ['mean', 'std', 'min', '5%', '25%', '50%', '75%', '95%', 'max', 'Range', 'Kurtosis', 'Skew']
-    final_df[round_cols] = final_df[round_cols].apply(lambda x: round(x, 3), axis=0)
+    final_df.loc[:, round_cols] = final_df[round_cols].round(3)
 
     return final_df
 
