@@ -356,15 +356,21 @@ def descriptive_dataframe(data: pd.DataFrame) -> pd.DataFrame:
     """
 
     # Initial data type, count, and null value calculations
-    summary_df = pd.DataFrame({
-        'Dtype': data.dtypes,
-        'Count': data.count(),
-        'Non-Null Count': data.notnull().sum(),
-        'NaN Count': data.isna().sum(),
-        'Unique': data.apply(lambda x: x.nunique(), result_type='reduce'),
-        'Top': data.apply(lambda x: x.value_counts().idxmax() if x.dtype == 'O' else np.nan),
-        'Freq': data.apply(lambda x: x.value_counts().max() if x.dtype == 'O' else np.nan)
-    })
+    summary_df = pd.DataFrame(
+        {
+            'Dtype': data.dtypes,
+            'Count': data.count(),
+            'Non-Null Count': data.notnull().sum(),
+            'NaN Count': data.isna().sum(),
+            'Unique': data.apply(lambda x: x.nunique(), result_type='reduce'),
+            'Top': data.apply(lambda x: x.value_counts().idxmax()),
+            'Freq': data.apply(lambda x: x.value_counts().max())
+        }
+    )
+
+    # Rounding the 'Top' value for numerical columns to 3 decimal places
+    summary_df['Top'] = summary_df.apply(
+        lambda row: round(row['Top'], 3) if (row['Dtype'] in ['float64', 'int64']) else row['Top'], axis=1)
 
     # Descriptive statistics for numeric columns
     numeric_cols = data.select_dtypes(include=[np.number]).columns
