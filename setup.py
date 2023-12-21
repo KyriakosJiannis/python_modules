@@ -24,7 +24,8 @@ setup(
         'matplotlib>=3.8.0',
         'pandas>=2.1.1',
         'numpy>=1.26.2',
-        'requests>=2.31.0'
+        'requests>=2.31.0',
+        'scipy>=1.11.4'
     ],
     classifiers=[
         'Development Status :: Pre-Alpha',
