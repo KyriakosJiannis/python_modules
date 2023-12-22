@@ -14,15 +14,10 @@ def import_from_web(url: str, function_name: str) -> Callable:
     Example usage:
 
     # Import the function 'my_function' from a GitHub file
-
-    web_url = 'https://raw.githubusercontent.com/KyriakosJiannis/python_modules/main/python_modules/eda_charts.py'
-
-    my_function = 'descriptive_dataframe'
-
-    imported_function = import_from_github(web_url, my_function)
-
-    descriptive_dataframe = imported_function()
-
+        web_url = 'https://raw.githubusercontent.com/KyriakosJiannis/python_modules/main/python_modules/eda_charts.py'
+        my_function = 'descriptive_dataframe'
+        imported_function = import_from_github(web_url, my_function)
+        descriptive_dataframe = imported_function()
     """
 
     # Fetch the content of the file

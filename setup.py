@@ -25,7 +25,8 @@ setup(
         'pandas>=2.1.1',
         'numpy>=1.26.2',
         'requests>=2.31.0',
-        'scipy>=1.11.4'
+        'scipy>=1.11.4',
+        'scikit-learn>=1.3.0'
     ],
     classifiers=[
         'Development Status :: Pre-Alpha',
