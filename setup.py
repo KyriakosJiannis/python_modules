@@ -20,13 +20,13 @@ setup(
     author_email='ioannis.kyriakos@gmail.com',
     packages=find_packages(),
     install_requires=[
-        'seaborn>=0.12.2',
-        'matplotlib>=3.7.4',
-        'pandas>=2.0.2',
-        'numpy>=1.24.3',
+        'seaborn>=0.13.0',
+        'matplotlib>=3.8.0',
+        'pandas>=2.1.1',
+        'numpy>=1.26.2',
         'requests>=2.31.0',
-        'scipy>=1.7.3',
-        'scikit-learn>=1.2.2'
+        'scipy>=1.11.4',
+        'scikit-learn>=1.3.0'
 
     ],
     classifiers=[
