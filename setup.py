@@ -27,23 +27,23 @@ setup(
         #'requests>=2.31.0',
         #'scipy>=1.11.4',
         #'scikit-learn>=1.3.0'
-        'seaborn>=0.12.0',
+        'seaborn>=0.12.2',
         'matplotlib>=3.7.4',
-        'numpy>=1.24.1',
+        'numpy>=1.24.3',
         'requests>=2.31.0',
         'pandas>=2.0.3',
         'scikit-learn>=1.2.2',
-        'scipy>=1.9'
+        'scipy>=1.11.4'
     ],
     extras_require={
         'kaggle': [
             # required for Kaggle environment - not tested only DEV
-            'seaborn==0.12.0',
+            'seaborn==0.12.2',
             'matplotlib==3.7.4',
-            'numpy==1.24.1',
+            'numpy==1.24.3',
             'pandas==2.0.3',
             'scikit-learn==1.2.2',
-            'scipy==1.9'
+            'scipy==1.11.4'
         ]
     },
     classifiers=[
