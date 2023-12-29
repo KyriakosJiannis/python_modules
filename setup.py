@@ -30,7 +30,7 @@ setup(
         'seaborn>=0.12.0',
         'matplotlib>=3.7.4',
         'numpy>=1.22.3',
-        'requests>=2.31.0'
+        'requests>=2.31.0',
         'pandas>=2.0.3',
         'scikit-learn>=1.2.2',
         'scipy>=1.8.0'
