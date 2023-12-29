@@ -27,7 +27,7 @@ setup(
         #'requests>=2.31.0',
         #'scipy>=1.11.4',
         #'scikit-learn>=1.3.0'
-        'seaborn>=0.12.0'
+        'seaborn>=0.12.0',
         'matplotlib>=3.7.4',
         'numpy>=1.22.3',
         'requests>=2.31.0'
