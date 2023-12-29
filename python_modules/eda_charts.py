@@ -166,6 +166,10 @@ def dual_line_bar_boxplot(data: pd.DataFrame, target_var: str, feature_var: str,
 
     # Create a secondary y-axis for the mean line plot and boxplots
     ax2 = ax1.twinx()
+    # Set y-axis limits
+    min_target = data[target_var].min()
+    max_target = data[target_var].max()
+    ax2.set_ylim(min_target, max_target)
 
     # Create boxplots for each category
     # todo data for numerical
