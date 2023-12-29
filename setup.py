@@ -13,7 +13,7 @@ with open("requirements.txt", encoding="utf8") as f:
 
 setup(
     name='python_modules',
-    version='0.0.1',
+    version='0.0.2',
     description='Collection of Python modules for EDA and ML',
     long_description=readme(),
     author='Ioannis Kyriakos',
