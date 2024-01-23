@@ -2,13 +2,9 @@
 __pycache__/
 *.py[cod]
 
-.ipynb_checkpoints/
-
-# Node.js
-node_modules/
+**/.ipynb_checkpoints/
 
 # Python
-__pycache__/
 *.pyc
 *.pyo
 *.pyd
@@ -19,9 +15,6 @@ __pycache__/
 .vscode/
 
 # Compiled files
-*.pyc
-*.pyo
-*.pyd
 
 # Temporary files
 *~

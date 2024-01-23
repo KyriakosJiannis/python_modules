@@ -1,22 +1,29 @@
-from matplotlib import pyplot as plt
-import seaborn as sns
-import pandas as pd
 import numpy as np
+import pandas as pd
 from pandas.api.types import CategoricalDtype
+from matplotlib import pyplot as plt
+from matplotlib.figure import Figure
+import seaborn as sns
 
 
 def dual_line_barplot(data: pd.DataFrame, target_var: str, feature_var: str, bins: int = None,
-                      round_bins: int = None):
+                      round_bins: int = None) -> Figure:
     """
-    Create a dual chart bar chart and line chart for binary classification cases where coded as [0,1].
-    The line chart represents the percentage of the target variable, and the bars represent features counts.
+    Generates a dual-axis chart combining a bar chart and a line chart, specifically designed
+    for visualizing the distribution and impact of a feature variable on a binary target variable
+    in classification problems.
+    The target variable should be binary (0,1).
+    The bar chart displays the count of observations for each bin or category of the feature variable, while the line
+    chart shows the percentage of one class of the target variable within each bin or category.
 
-    :param data: Imported DataFrame.
-    :param target_var: Target variable.
-    :param feature_var: feature.
-    :param bins: Number of bins (default: 10).
-    :param round_bins: Decimals for rounding.
-    :return: Seaborn dual chart.
+    :param data: The DataFrame containing the dataset to be visualized.
+    :param target_var: The name of the binary target variable.  Must contain only 0 and 1
+    :param feature_var: The name of the feature variable to analyze. Can be numeric or object.
+    :param bins: Optional. The number of bins to divide the numeric feature variable into. If `None`,
+                defaults to 10. Ignored for categorical/object variables.
+    :param round_bins: Optional. The number of decimal places to round the edges of the bins to.
+                Only applicable if `bins` is used for a numeric feature variable.
+    :return: dual matplotlib figure.
     """
 
     if not all(data[target_var].isin([0, 1])):
@@ -92,24 +99,33 @@ def dual_line_barplot(data: pd.DataFrame, target_var: str, feature_var: str, bin
     # Adjust tick sizes
     ax2.tick_params(axis='y', labelsize=8)
 
-    # Show the plot
-    plt.tight_layout()
-    plt.show()
+    # tight and modifying
+    fig.tight_layout()
+    plt.close(fig)
+    return fig
 
 
-def dual_line_bar_boxplot(data: pd.DataFrame, target_var: str, feature_var: str, chart="boxplot", bins: int = None):
+def dual_line_bar_boxplot(data: pd.DataFrame, target_var: str, feature_var: str, chart="boxplot",
+                          bins: int = None) -> Figure:
     """
-    Create a dual chart,  bar chart, boxplot and line chart for regression cases.
-    The line chart represents mean target variable on classes, and the bars represent the counts,
-    while boxplots target variable on classes.
+    Generates a dual-axis chart combining a bar chart, boxplot or violin or boxenplot and a line chart, specifically
+    designed for visualizing the distribution and impact of a feature variable on target variable on
+    regression problems.
 
+    The bar chart displays the count of observations for each bin or category of the feature variable, while the line
+    chart shows the mean target variable on feature bands and boxplot/violet or boxenplot discribe its distribution
+
+    :param data: The DataFrame containing the dataset to be visualized.
+    :param target_var: The name of target variable.  Must be numerical
+    :param feature_var: The name of the feature variable to analyze. Can be numeric or object.
     :param chart: boxplot/violin/boxenplot
-    :param data: pandas DataFrame containing the data.
-    :param feature_var: The name of the categorical variable.
-    :param target_var: The name of the continuous variable.
     :param bins: Number of bins (default: 10).
     :return: Seaborn dual chart.
     """
+
+    if bins is not None and not isinstance(bins, int):
+        raise TypeError("Bins should be an integer or None.")
+
     # Set the bin number, and create the grouped dataframe
     if pd.api.types.is_numeric_dtype(data[feature_var]):
         # Determine the number of bins based on the specified method or default to 10
@@ -193,21 +209,22 @@ def dual_line_bar_boxplot(data: pd.DataFrame, target_var: str, feature_var: str,
     for label in ax1.get_xticklabels():
         label.set_color('black')
 
-    # Show plot
-    plt.tight_layout()
-    plt.show()
+    # tight and modifying
+    fig.tight_layout()
+    plt.close(fig)
+    return fig
 
 
-def sub_hist_boxplot(data: pd.DataFrame, target_var: str, feature_var: str, stat="density", bins: int = None, ):
+def sub_hist_boxplot(data: pd.DataFrame, target_var: str, feature_var: str, stat="density",
+                     bins: int = None) -> Figure:
     """
-    For classification cases, creates a subplot with a density chart and boxplot on target variable classes
-    for a numerical features.
+    Generates subplot with a density chart and boxplot for classification on numerical features.
 
-    :param data: Pandas DataFrame.
-    :param target_var: Target variable.
-    :param feature_var: Numerical feature.
-    :param bins:
-    :param stat:
+    :param data: Pandas DataFrame containing the dataset.
+    :param target_var: Name of the target variable (should be numeric).
+    :param feature_var: Name of the numerical feature to analyze.
+    :param stat: Optional. Type of statistic to compute for the density plot (default is "density").
+    :param bins: Optional. Number of bins for the density plot (default is None).
     :return: Subplot with Seaborn density and boxplot.
     """
 
@@ -231,9 +248,10 @@ def sub_hist_boxplot(data: pd.DataFrame, target_var: str, feature_var: str, stat
     ax2 = fig.add_subplot(2, 2, 2)
     sns.boxplot(x=target_var, y=feature_var, data=data, palette='tab10', ax=ax2)
 
-    # Automatically adjust subplot parameters
-    plt.tight_layout()
-    plt.show()
+    # Tighten the layout and close the figure
+    fig.tight_layout()
+    plt.close(fig)
+    return fig
 
 
 def tabular_plot(data: pd.DataFrame, target_var: str, feature_var: str):
@@ -259,9 +277,9 @@ def tabular_plot(data: pd.DataFrame, target_var: str, feature_var: str):
     # Set y-axis limit to ensure percentages are within the range [0, 100]
     chart.ax.set_ylim(0, 100)
 
-    # Show the plot
-    plt.tight_layout()
-    plt.show()
+    chart.fig.tight_layout()
+    plt.close(chart.fig)
+    return chart.fig
 
 
 def distribution_by_group(data: pd.DataFrame, feature_var: str, by: str, stat="density", bins: int = None):
