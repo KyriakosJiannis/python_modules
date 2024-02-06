@@ -153,6 +153,7 @@ def dual_line_bar_boxplot(data: pd.DataFrame, target_var: str, feature_var: str,
         # If the feature variable is not numerical, aggregate using the feature variable directly
         # todo merge codes bx is temp
         bx_temp = data.copy()
+        bx_temp[feature_var] = bx_temp[feature_var].astype(str)
 
         grouped_data = data.groupby(feature_var)[[feature_var, target_var]].agg(
             {feature_var: 'count', target_var: 'mean'})
