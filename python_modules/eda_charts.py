@@ -190,12 +190,15 @@ def dual_line_bar_boxplot(data: pd.DataFrame, target_var: str, feature_var: str,
     # Create boxplots for each category
     # todo data for numerical
     if chart == 'boxplot':
-        sns.boxplot(x=feature_var, y=target_var, data=bx_temp, ax=ax2, color='grey', fliersize=3)
+        sns.boxplot(x=feature_var, y=target_var, data=bx_temp, ax=ax2, color='grey',
+                    order=grouped_data[feature_var].tolist(), fliersize=3)
     elif chart == 'violin':
         sns.violinplot(x=feature_var, y=target_var, data=bx_temp, ax=ax2, color='grey',
+                       order=grouped_data[feature_var].tolist(),
                        inner_kws=dict(box_width=15, whis_width=2, color=".8"))
     elif chart == 'boxenplot':
         sns.boxenplot(x=feature_var, y=target_var, data=bx_temp, ax=ax2, color='grey',
+                      order=grouped_data[feature_var].tolist(),
                       k_depth="trustworthy", trust_alpha=0.01)
 
     # Line plot for the mean of the continuous variable with color set to C1
