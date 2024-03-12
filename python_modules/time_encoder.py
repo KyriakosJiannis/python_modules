@@ -48,15 +48,19 @@ class TimeEncoder:
 
 
 if __name__ == "__main__":
-    # Example usage of the TimeEncoder class
-    encoder = TimeEncoder()
-    minutes = encoder.convert_time_to_minutes(1305)  # Example time in HHMM format
-    time_sin, time_cos = encoder.encode_cyclical_time(minutes)
-    weekday_sin, weekday_cos = encoder.encode_cyclical_weekday(5)  # Example weekday (e.g., Friday)
-    month_sin, month_cos = encoder.encode_cyclical_month(12)  # Example month (e.g., December)
+    # Sample data
+    pd.set_option('display.max_columns', None)
+    data = {
+        'Time_HHMM': [1230, 900, 1530, 2200],
+        'Weekday': [1, 5, 7, 3],
+        'Month': [1, 7, 12, 4]
+    }
 
-    # Print the results for demonstration
-    print("Time converted to minutes:", minutes)
-    print("Cyclical time encoding (sin, cos):", time_sin, time_cos)
-    print("Cyclical weekday encoding (sin, cos):", weekday_sin, weekday_cos)
-    print("Cyclical month encoding (sin, cos):", month_sin, month_cos)
+    df = pd.DataFrame(data)
+
+    # Applying the TimeEncoder methods
+    df['Time_in_minutes'] = df['Time_HHMM'].apply(TimeEncoder.convert_time_to_minutes)
+    df['Time_sin'], df['Time_cos'] = zip(*df['Time_in_minutes'].apply(TimeEncoder.encode_cyclical_time))
+    df['Weekday_sin'], df['Weekday_cos'] = zip(*df['Weekday'].apply(TimeEncoder.encode_cyclical_weekday))
+    df['Month_sin'], df['Month_cos'] = zip(*df['Month'].apply(TimeEncoder.encode_cyclical_month))
+    print(df)
