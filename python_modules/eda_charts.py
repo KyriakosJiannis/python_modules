@@ -6,28 +6,15 @@ from matplotlib.figure import Figure
 import seaborn as sns
 
 
-def dual_line_barplot(data: pd.DataFrame, target_var: str, feature_var: str, bins: int = None,
-                      round_bins: int = None) -> Figure:
+def dual_line_barplot(data: pd.DataFrame, target_var: str, feature_var: str, bins: int = None, round_bins: int = None) -> Figure:
     """
     Generates a dual-axis chart combining a bar chart and a line chart, specifically designed
     for visualizing the distribution and impact of a feature variable on a binary target variable
     in classification problems.
-    The target variable should be binary (0,1).
-    The bar chart displays the count of observations for each bin or category of the feature variable, while the line
-    chart shows the percentage of one class of the target variable within each bin or category.
-
-    :param data: The DataFrame containing the dataset to be visualized.
-    :param target_var: The name of the binary target variable.  Must contain only 0 and 1
-    :param feature_var: The name of the feature variable to analyze. Can be numeric or object.
-    :param bins: Optional. The number of bins to divide the numeric feature variable into. If `None`,
-                defaults to 10. Ignored for categorical/object variables.
-    :param round_bins: Optional. The number of decimal places to round the edges of the bins to.
-                Only applicable if `bins` is used for a numeric feature variable.
-    :return: dual matplotlib figure.
     """
 
     if not all(data[target_var].isin([0, 1])):
-        raise ValueError("Target and feature variables must contain only 0 and 1.")
+        raise ValueError("Target variable must contain only 0 and 1.")
 
     if bins is not None and not isinstance(bins, int):
         raise TypeError("Bins should be an integer or None.")
@@ -37,38 +24,43 @@ def dual_line_barplot(data: pd.DataFrame, target_var: str, feature_var: str, bin
 
     # Set the bin number, and create the grouped dataframe
     if pd.api.types.is_numeric_dtype(data[feature_var]):
-        # Determine the number of bins based on the specified method or default to 10
-        num_bins = bins if bins is not None and bins not in ["auto", "fd", "scott", "rice", "sturges", "doane",
-                                                             "sqrt"] else 10
+        # Determine the number of bins
+        num_bins = bins if bins is not None else 10
 
         # Create bins
         bins_group = pd.cut(data[feature_var], bins=num_bins, right=False)
 
-        # Calculate counts and mean for each bin to be used in the chart
+        # Calculate counts and mean for each bin
         grouped_data = data.groupby(bins_group)[[feature_var, target_var]].agg(
-            {feature_var: 'count', target_var: 'mean'})
+            {feature_var: 'count', target_var: 'mean'}
+        )
     else:
-        # If the feature variable is not numerical, aggregate using the feature variable directly
+        # If the feature variable is categorical
         grouped_data = data.groupby(feature_var)[[feature_var, target_var]].agg(
-            {feature_var: 'count', target_var: 'mean'})
+            {feature_var: 'count', target_var: 'mean'}
+        )
 
     # Rename columns
     grouped_data.columns = [f'{feature_var} Counts', target_var]
     grouped_data.reset_index(inplace=True)
 
-    # Convert feature variable to string for categorical display
-    grouped_data[feature_var] = grouped_data[feature_var].astype(str)
-    grouped_data[feature_var] = grouped_data[feature_var].str.replace(", ", "-")
-
-    # Function to round numeric values within the bracketed string
+    # Handle rounding for numeric feature bins
     if pd.api.types.is_numeric_dtype(data[feature_var]) and round_bins is not None:
         def round_the_brackets(value, decimals):
-            boundaries = [round(float(num), decimals) for num in value[1:-1].split('-')]
-            formatted_boundaries = [int(num) if decimals == 0 else num for num in boundaries]
-            return '[' + '-'.join(map(str, formatted_boundaries)) + ')'
+            try:
+                if value.startswith("[") and value.endswith(")"):
+                    boundaries = [round(float(num), decimals) for num in value[1:-1].split('-')]
+                    formatted_boundaries = [int(num) if decimals == 0 else num for num in boundaries]
+                    return '[' + '-'.join(map(str, formatted_boundaries)) + ')'
+                else:
+                    return value  # If not in expected format, return as-is
+            except Exception as e:
+                print(f"Error rounding value: {value}, Exception: {e}")
+                return value
 
-        grouped_data[feature_var] = grouped_data[feature_var].apply(
-            lambda x: round_the_brackets(x, decimals=round_bins))
+        grouped_data[feature_var] = grouped_data[feature_var].astype(str).apply(
+            lambda x: round_the_brackets(x, decimals=round_bins)
+        )
 
     # Multiply by 100 for percentage display
     grouped_data[target_var] *= 100
@@ -79,31 +71,23 @@ def dual_line_barplot(data: pd.DataFrame, target_var: str, feature_var: str, bin
     # Create dual chart
     fig, ax1 = plt.subplots(figsize=(10, 6))
 
-    # Bar plot creation
+    # Bar plot
     ax1.set_title(f'{feature_var} Distribution', fontsize=12)
     ax1.set_xlabel(f'{feature_var} Bins', fontsize=10)
     ax1.set_ylabel(f'{feature_var} Counts', fontsize=10)
-
     sns.barplot(x=feature_var, y=f'{feature_var} Counts', data=grouped_data, color='C0', ax=ax1)
-
-    # Adjust tick sizes
     ax1.tick_params(axis='both', labelsize=8)
 
-    # Create a secondary y-axis chart
+    # Line plot on secondary y-axis
     ax2 = ax1.twinx()
-
-    # Line plot creation
-    ax2.set_ylabel(f'{target_var} in %', fontsize=16)
-    sns.lineplot(x=feature_var, y=target_var, data=grouped_data, sort=False, color="C1", lw=5, ax=ax2)
-
-    # Adjust tick sizes
+    ax2.set_ylabel(f'{target_var} in %', fontsize=10)
+    sns.lineplot(x=feature_var, y=target_var, data=grouped_data, sort=False, color="C1", lw=2, ax=ax2)
     ax2.tick_params(axis='y', labelsize=8)
 
-    # tight and modifying
+    # Tight layout and return figure
     fig.tight_layout()
     plt.close(fig)
     return fig
-
 
 def dual_line_bar_boxplot(data: pd.DataFrame, target_var: str, feature_var: str, chart="boxplot",
                           bins: int = None) -> Figure:
